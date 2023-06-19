@@ -1,0 +1,17 @@
+---
+# tasks file for proxmoxer
+- name: Remove proxmoxer distro package
+  ansible.builtin.package:
+    name: python3-proxmoxer
+    state: absent
+
+- name: Install pip
+  ansible.builtin.package:
+    name: python3-pip
+    state: present
+
+- name: Install proxmoxer with pip
+  ansible.builtin.pip:
+    name: proxmoxer
+    state: present
+    version: "{{ proxmoxer_version }}"

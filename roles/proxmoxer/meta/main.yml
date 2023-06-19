@@ -1,0 +1,18 @@
+galaxy_info:
+  author: exodious
+  description: Installs proxmoxer for support of community.general proxmox modules
+  license: MIT
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+  galaxy_tags:
+    - proxmox
+    - proxmoxer
+    - pve
+
+dependencies: []
