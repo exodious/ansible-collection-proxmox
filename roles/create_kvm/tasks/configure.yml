@@ -5,7 +5,6 @@
 - name: Configure NIC
   ansible.builtin.include_tasks: nic.yml
 
-# TODO this is returning changed status even if nothing is actually changed - API issue
 - name: Update VM configuration
   community.general.proxmox_kvm:
     acpi: "{{ pve_acpi | default(omit) }}"
@@ -71,3 +70,4 @@
     watchdog: "{{ pve_watchdog | default(omit) }}"
     state: present
   when: pve_update
+  # NOTE: not idempotent, see https://github.com/ansible-collections/community.general/issues/1965
