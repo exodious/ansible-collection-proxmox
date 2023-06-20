@@ -1,0 +1,20 @@
+---
+- name: Create or configure NIC
+  community.general.proxmox_nic:
+    bridge: "{{ item.bridge | default(omit) }}"
+    firewall: "{{ item.firewall | default(omit) }}"
+    interface: "{{ item.interface }}"
+    link_down: "{{ item.link_down | default(omit) }}"
+    mac: "{{ item.mac | default(omit) }}"
+    model: "{{ item.model | default(omit) }}"
+    name: "{{ pve_name }}"
+    mtu: "{{ item.mtu | default(omit) }}"
+    queues: "{{ item.queues | default(omit) }}"
+    rate: "{{ item.rate | default(omit) }}"
+    tag: "{{ item.tag | default(omit) }}"
+    trunks: "{{ item.trunks | default(omit) }}"
+    vmid: "{{ kvm_created.vmid }}"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ pve_nics | default([]) }}"
+  loop_control:
+    label: "{{ item.interface }}"
