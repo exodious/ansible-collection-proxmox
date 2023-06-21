@@ -1,0 +1,21 @@
+---
+- name: Ensure existence of container firewall file
+  ansible.builtin.file:
+    path: "/etc/pve/firewall/{{ kvm_created.vmid }}.fw"
+    state: touch
+    owner: root
+    group: www-data
+    mode: "0640"
+    modification_time: preserve
+    access_time: preserve
+  when: pve_firewall
+
+- name: Copy container firewall file
+  ansible.builtin.copy:
+    src: "files/firewall/{{ kvm_created.vmid }}.fw"
+    dest: "/etc/pve/firewall/{{ kvm_created.vmid }}.fw"
+    owner: root
+    group: www-data
+    mode: "0640"
+  when: pve_firewall
+  notify: Reload pve-firewall

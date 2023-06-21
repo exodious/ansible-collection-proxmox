@@ -1,0 +1,6 @@
+---
+# handlers file for create_kvm
+- name: Reload pve-firewall
+  ansible.builtin.service:
+    name: pve-firewall
+    state: reloaded

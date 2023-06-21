@@ -1,0 +1,52 @@
+---
+# tasks file for create_kvm
+- name: Create or clone VM
+  module_defaults:
+    community.general.proxmox_kvm:
+      api_host: "{{ pve_api_host }}"
+      api_password: "{{ pve_api_password | default(omit) }}"
+      api_token_id: "{{ pve_api_token_id | default(omit) }}"
+      api_token_secret: "{{ pve_api_token_secret | default(omit) }}"
+      api_user: "{{ pve_api_user }}"
+      proxmox_default_behavior: "{{ pve_default_behavior | default('no_defaults') }}"
+      validate_certs: "{{ pve_validate_certs | default(true) }}"
+
+    community.general.proxmox_disk:
+      api_host: "{{ pve_api_host }}"
+      api_password: "{{ pve_api_password | default(omit) }}"
+      api_token_id: "{{ pve_api_token_id | default(omit) }}"
+      api_token_secret: "{{ pve_api_token_secret | default(omit) }}"
+      api_user: "{{ pve_api_user }}"
+      validate_certs: "{{ pve_validate_certs | default(true) }}"
+
+    community.general.proxmox_nic:
+      api_host: "{{ pve_api_host }}"
+      api_password: "{{ pve_api_password | default(omit) }}"
+      api_token_id: "{{ pve_api_token_id | default(omit) }}"
+      api_token_secret: "{{ pve_api_token_secret | default(omit) }}"
+      api_user: "{{ pve_api_user }}"
+      validate_certs: "{{ pve_validate_certs | default(true) }}"
+
+  block:
+    - name: Clone VM
+      ansible.builtin.include_tasks: clone.yml
+      when: pve_clone
+
+    - name: Create VM
+      ansible.builtin.include_tasks: create.yml
+      when: not pve_clone
+
+    - name: Configure VM
+      ansible.builtin.include_tasks: configure.yml
+
+    - name: Configure VM firewall
+      ansible.builtin.include_tasks: firewall.yml
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Start VM
+      community.general.proxmox_kvm:
+        state: started
+        vmid: "{{ kvm_created.vmid }}"
+      when: pve_start

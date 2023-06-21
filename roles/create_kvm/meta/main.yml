@@ -1,0 +1,19 @@
+galaxy_info:
+  author: exodious
+  description: Wrapper around community.general proxmox modules for creating KVM guests in Proxmox
+  license: MIT
+  min_ansible_version: "2.15"
+  role_name: create_kvm
+
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+  galaxy_tags:
+    - kvm
+    - proxmox
+    - pve
+
+dependencies: []

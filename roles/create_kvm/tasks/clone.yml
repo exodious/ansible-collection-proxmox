@@ -1,0 +1,40 @@
+---
+# NOTE: need to clone and configure in multiple steps
+- name: Clone VM
+  community.general.proxmox_kvm:
+    clone: "{{ pve_clone | default(omit) }}"
+    format: "{{ pve_format | default(omit) }}"
+    full: "{{ pve_full | default(omit) }}"
+    name: "{{ pve_name }}"
+    newid: "{{ pve_newid | default(omit) }}"
+    node: "{{ pve_node }}" # needs to be same as where the template vm is located
+    snapname: "{{ pve_snapname | default(omit) }}"
+    storage: "{{ pve_storage if pve_node == pve_target else omit }}" # set only if the node == target
+    target: "{{ pve_target | default(omit) }}"
+    timeout: "{{ pve_timeout | default(omit) }}"
+    vmid: "{{ pve_vmid | default(omit) }}"
+    state: present
+  register: kvm_created
+
+- name: Get VM data
+  ansible.builtin.command: pvesh get /nodes/{{ pve_target }}/qemu/{{ kvm_created.vmid }}/config --output-format json
+  changed_when: false
+  register: vm_data
+
+- name: Set VM facts
+  ansible.builtin.set_fact:
+    kvm_config: "{{ vm_data.stdout | from_json }}"
+
+- name: Move disk
+  community.general.proxmox_disk:
+    delete_moved: true
+    disk: "{{ item.disk }}"
+    name: "{{ pve_name }}"
+    target_storage: "{{ item.storage | default(pve_storage) }}"
+    vmid: "{{ kvm_created.vmid }}"
+    state: moved
+  loop: "{{ pve_disks | default([]) }}" # TODO can we get the list of disks from the new VM?
+  loop_control:
+    label: "{{ item.disk }}"
+  # don't need to move when the target is the same as the node
+  when: (item.disk in kvm_config) and (not kvm_config[item.disk].startswith(item.get("storage", pve_storage)))

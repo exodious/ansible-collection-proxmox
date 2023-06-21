@@ -1,0 +1,6 @@
+---
+# defaults file for create_kvm
+pve_firewall: false
+pve_start: true
+pve_storage: local-lvm
+pve_update: true
