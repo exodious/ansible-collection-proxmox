@@ -1,6 +1,7 @@
 ---
 # defaults file for create_kvm
 pve_firewall: false
+pve_post_clone_delay_secs: 5
 pve_start: true
 pve_storage: local-lvm
 pve_update: true

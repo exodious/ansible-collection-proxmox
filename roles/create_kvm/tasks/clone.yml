@@ -25,6 +25,16 @@
   ansible.builtin.set_fact:
     kvm_config: "{{ vm_data.stdout | from_json }}"
 
+# TODO this would be better as closed vs open loop, but what to wait_for ?
+- name: Wait for VM disk to register
+  ansible.builtin.pause:
+    seconds: "{{ pve_post_clone_delay_secs }}"
+  # don't need to wait when the target is the same as the node
+  when: >-
+    (pve_post_clone_delay_secs > 0)
+    and (item.disk in kvm_config)
+    and (not kvm_config[item.disk].startswith(item.get("storage", pve_storage)))
+
 - name: Move disk
   community.general.proxmox_disk:
     delete_moved: true
