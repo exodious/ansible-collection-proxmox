@@ -30,11 +30,11 @@
   block:
     - name: Clone VM
       ansible.builtin.include_tasks: clone.yml
-      when: pve_clone
+      when: pve_clone | default(false)
 
     - name: Create VM
       ansible.builtin.include_tasks: create.yml
-      when: not pve_clone
+      when: not (pve_clone | default(false))
 
     - name: Configure VM
       ansible.builtin.include_tasks: configure.yml
