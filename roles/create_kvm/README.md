@@ -94,7 +94,6 @@ Example Playbook
             state: present
           - disk: ide2
             media: cdrom
-            size: 0  # necessary on cdrom because of how community.general.proxmox_disk formats the config string
             storage: local:iso/ubuntu-22.04.2-desktop-amd64.iso
             state: present
         pve_nics:
