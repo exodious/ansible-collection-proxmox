@@ -65,3 +65,6 @@
     watchdog: "{{ pve_watchdog | default(omit) }}"
     state: present
   register: kvm_created
+
+- name: Get VM data
+  ansible.builtin.include_tasks: vm_facts.yml
