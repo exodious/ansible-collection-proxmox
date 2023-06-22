@@ -10,7 +10,7 @@
   loop: "{{ pve_disks | default([]) }}"
   loop_control:
     label: "{{ item.disk }}"
-  when: (item.disk in kvm_config) and ("size" in item)
+  when: (item.disk in kvm_config) and ("size" in item) and (item.get("media") != "cdrom")
 
 - name: Create or configure disk
   community.general.proxmox_disk:
