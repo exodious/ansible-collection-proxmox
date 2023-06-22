@@ -19,11 +19,13 @@ This role has variables for most of the parameters to the community.general.prox
 - `pve_post_clone_delay_secs`: open loop delay after cloning before moving any VM disks. Seems to resolve intermittent move task failures because something with Proxmox hasn't detected the new disk yet. The community.general.proxmox_kvm module does not adequately handle these task failures.
 - `pve_start`: whether to start the guest after creation/cloning and configuration.
 - `pve_storage`: target storage for the VM disks.
-- `pve_update`: whether to update the VM configuration after cloning. Because cloning and configuration happen in separate steps, you'll generally want this to be `true` when cloning a VM. TODO is this relevant to creating vs cloning?
+- `pve_update`: whether to update the VM configuration after cloning. Because cloning and configuration happen in separate steps, you'll generally want this to be `true` when cloning a VM. If re-running the play, may also be applicable to non-cloned VMs, too.
 - `pve_clone`: name of the template from which to clone the VM. If set, the VM will be created via cloning instead of from scratch.
 - `pve_disks`: list of disks to move, create, resize, or otherwise configure. Each entry is an object consisting of the following keys:
     - `disk`: disk identifier, e.g. scsi0, virtio0
+    - `state`: to create, update, or delete a disk, set this variable accordingly (`present`, `absent`)
     - Any other parameter to the community.general.proxmox_disk module, except `vmid` which is automatically provided.
+    - `create`: defaulted to `disabled` if the disk already exists
 - `pve_nics`: list of NICs to create or otherwise configure. Each entry is an object consisting of the following keys:
     - `interface`: NIC identifier, e.g. net0
     - Any other parameter to the community.general.proxmox_nic module, except `vmid` which is automatically provided.
@@ -65,6 +67,40 @@ Example Playbook
           - disk: ide2
         pve_ipconfig:
           ipconfig0: ip=dhcp
+```
+
+```yaml
+- name: Create VM
+  hosts: proxmox_api
+
+  roles:
+    - role: exodious.proxmox.proxmoxer
+    - role: exodious.proxmox.create_kvm
+      vars:
+        pve_api_host: "{{ inventory_hostname }}"
+        pve_api_token_id: "SECRET SQUIRREL TOKEN ID"
+        pve_api_token_secret: "SECRET SQUIRREL TOKEN SECRET"
+        pve_node: "{{ inventory_hostname_short }}"
+        pve_storage: local-lvm
+        pve_vmid: 9002
+        pve_name: myvm2
+        pve_target: "{{ inventory_hostname_short }}"
+        pve_cores: 2
+        pve_memory: 2048
+        pve_start: false
+        pve_disks:
+          - disk: scsi0
+            size: 10
+            state: present
+          - disk: ide2
+            media: cdrom
+            size: 0  # necessary on cdrom because of how community.general.proxmox_disk formats the config string
+            storage: "local:iso/ubuntu-22.04.2-desktop-amd64.iso"
+            state: present
+        pve_nics:
+          - interface: net0
+            bridge: vmbr0
+            model: virtio
 ```
 
 License
