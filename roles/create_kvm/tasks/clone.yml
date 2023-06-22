@@ -17,13 +17,7 @@
   register: kvm_created
 
 - name: Get VM data
-  ansible.builtin.command: pvesh get /nodes/{{ pve_target }}/qemu/{{ kvm_created.vmid }}/config --output-format json
-  changed_when: false
-  register: vm_data
-
-- name: Set VM facts
-  ansible.builtin.set_fact:
-    kvm_config: "{{ vm_data.stdout | from_json }}"
+  ansible.builtin.include_tasks: vm_facts.yml
 
 # TODO this would be better as closed vs open loop, but what to wait_for ?
 - name: Wait for VM disk to register

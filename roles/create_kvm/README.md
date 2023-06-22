@@ -1,38 +1,114 @@
-Role Name
-=========
+exodious.create_kvm
+===================
 
-A brief description of the role goes here.
+The Proxmox API and the community.general.proxmox_kvm module have some quirks that can make creating and cloning VMs challenging. This role aims to simplify these usages.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The [proxmoxer](../proxmoxer/README.md) role needs to be executed at least once in order for a majority of the tasks in this role to function.
+
+Alternatively, the proxmoxer package can be installed manually via pip... but THIS! IS! ANSIBLE!
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+This role has variables for most of the parameters to the community.general.proxmox_kvm, community.general.proxmox_disk, and community.general.proxmox_nic modules, prefixed with `pve_`. E.g., `api_host` is configurable via `pve_api_host`. Only unique variables and additional usage of the aforementioned module variables are documented below.
+
+- `pve_firewall`: whether to install a Proxmox guest firewall.
+- `pve_post_clone_delay_secs`: open loop delay after cloning before moving any VM disks. Seems to resolve intermittent move task failures because something with Proxmox hasn't detected the new disk yet. The community.general.proxmox_kvm module does not adequately handle these task failures.
+- `pve_start`: whether to start the guest after creation/cloning and configuration.
+- `pve_storage`: target storage for the VM disks.
+- `pve_update`: whether to update the VM configuration after cloning. Because cloning and configuration happen in separate steps, you'll generally want this to be `true` when cloning a VM. If re-running the play, may also be applicable to non-cloned VMs, too.
+- `pve_clone`: name of the template from which to clone the VM. If set, the VM will be created via cloning instead of from scratch.
+- `pve_disks`: list of disks to move, create, resize, or otherwise configure. Each entry is an object consisting of the following keys:
+    - `disk`: disk identifier, e.g. scsi0, virtio0
+    - `state`: to create, update, or delete a disk, set this variable accordingly (`present`, `absent`)
+    - Any other parameter to the community.general.proxmox_disk module, except `vmid` which is automatically provided.
+    - `create`: defaulted to `disabled` if the disk already exists
+- `pve_nics`: list of NICs to create or otherwise configure. Each entry is an object consisting of the following keys:
+    - `interface`: NIC identifier, e.g. net0
+    - Any other parameter to the community.general.proxmox_nic module, except `vmid` which is automatically provided.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+None
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yaml
+- name: Clone VM
+  hosts: proxmox_api
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+  roles:
+    - role: exodious.proxmox.proxmoxer
+    - role: exodious.proxmox.create_kvm
+      vars:
+        pve_api_host: "{{ inventory_hostname }}"
+        pve_api_token_id: "SECRET SQUIRREL TOKEN ID"
+        pve_api_token_secret: "SECRET SQUIRREL TOKEN SECRET"
+        pve_clone: ubuntu-2204-cloud-template
+        pve_full: true
+        pve_node: "{{ inventory_hostname_short }}"
+        pve_storage: local-lvm
+        pve_vmid: 9000
+        pve_sshkeys: "SOME_SSH_KEY"
+        pve_cipassword: "SUPER DUPER SECRET PASSWORD"
+        pve_name: myvm
+        pve_newid: 9001
+        pve_target: "{{ inventory_hostname_short }}"
+        pve_cores: 2
+        pve_memory: 2048
+        pve_disks:
+          - disk: scsi0
+            size: 10
+          - disk: ide2
+        pve_ipconfig:
+          ipconfig0: ip=dhcp
+```
+
+```yaml
+- name: Create VM
+  hosts: proxmox_api
+
+  roles:
+    - role: exodious.proxmox.proxmoxer
+    - role: exodious.proxmox.create_kvm
+      vars:
+        pve_api_host: "{{ inventory_hostname }}"
+        pve_api_token_id: "SECRET SQUIRREL TOKEN ID"
+        pve_api_token_secret: "SECRET SQUIRREL TOKEN SECRET"
+        pve_node: "{{ inventory_hostname_short }}"
+        pve_storage: local-lvm
+        pve_vmid: 9002
+        pve_name: myvm2
+        pve_target: "{{ inventory_hostname_short }}"
+        pve_cores: 2
+        pve_memory: 2048
+        pve_start: false
+        pve_disks:
+          - disk: scsi0
+            size: 10
+            state: present
+          - disk: ide2
+            media: cdrom
+            size: 0  # necessary on cdrom because of how community.general.proxmox_disk formats the config string
+            storage: local:iso/ubuntu-22.04.2-desktop-amd64.iso
+            state: present
+        pve_nics:
+          - interface: net0
+            bridge: vmbr0
+            model: virtio
+```
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+https://github.com/exodious

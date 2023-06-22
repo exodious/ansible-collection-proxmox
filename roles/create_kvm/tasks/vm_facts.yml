@@ -1,0 +1,9 @@
+---
+- name: Get VM data
+  ansible.builtin.command: pvesh get /nodes/{{ pve_target }}/qemu/{{ kvm_created.vmid }}/config --output-format json
+  changed_when: false
+  register: vm_data
+
+- name: Set VM facts
+  ansible.builtin.set_fact:
+    kvm_config: "{{ vm_data.stdout | from_json }}"
