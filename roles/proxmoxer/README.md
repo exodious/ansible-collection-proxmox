@@ -1,5 +1,5 @@
 exodious.proxmoxer
-=========
+==================
 
 Removes distro package of [proxmoxer](https://github.com/proxmoxer/proxmoxer) and installs the specified version of same via pip.
 
