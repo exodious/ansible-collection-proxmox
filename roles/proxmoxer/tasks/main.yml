@@ -15,3 +15,4 @@
     name: proxmoxer
     state: present
     version: "{{ proxmoxer_version }}"
+    extra_args: "{{ '--break-system-packages' if (ansible_python.version.major >= 3 and ansible_python.version.minor >= 11) else default(omit) }}"
