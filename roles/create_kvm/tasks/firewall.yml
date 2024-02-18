@@ -12,7 +12,7 @@
 
 - name: Copy container firewall file
   ansible.builtin.copy:
-    src: "files/firewall/{{ kvm_created.vmid }}.fw"
+    src: "firewall/{{ kvm_created.vmid }}.fw"
     dest: "/etc/pve/firewall/{{ kvm_created.vmid }}.fw"
     owner: root
     group: www-data
